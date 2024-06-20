@@ -93,5 +93,7 @@ You might find the following functions to be of use (this is not to say that you
 - Please do not commit compiled/executable files to git (ie. do not add: `a.out`, `tree` (the executable file, without an extension), `main.o`, etc.)
 - For full credit, your git commit history must be sufficiently detailed to illustrate how you approached the assignment, addressed bugs, etc. Commit often, with descriptive commit labels. For example: "initial data structures and function prototypes", "implemented the -a switch to display hidden files", "solved resource leak in function xyz()"  There is no fixed minimum number of commits. As one example guideline, you will not be eligible for full credit if your submitted git repository includes just 2-3 commits where large blocks of code are added in each commit.
 
+
+
 # Rubric
 ![tree_rubric](https://github.com/jerhuan205/CSC357-SystemsProgramming/assets/122332863/066bf46d-a367-4059-b0b5-930b26f48b44)
