@@ -6,12 +6,12 @@ This assignment serves as an introduction to programming in C. As the first assi
 # Course Learning Objectives
 This assignment addresses the following course learning objectives.
 
-  ## Direct
+  #H1 Direct
 
 Read and write complex programs in the C programming language.
 Transition to upper-division coursework where programming is a tool used in the exploration of course-specific content.
 Transition from following stepwise, prescribed decompositions to independent problem solving.
   
-  ## Indirect
+  #H1 Indirect
 
 Use standard UNIX user-level commands and the UNIX software development environment.
