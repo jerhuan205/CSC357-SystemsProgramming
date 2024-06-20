@@ -8,11 +8,12 @@ This assignment requires that you write a program that interacts with the system
 
 ### Setup
 
-Clone the repository.
+- Accept the [GitHub Classroom Assignment 3 invitation](https://github.com/amigler-cp/357-assignment-3-jerhuan205).
+- Clone the repository.
 
 
 
-## Functional Overview
+# Functional Overview
 
 Your program, named `tree`, must take as command-line arguments optional switches and a single directory name. For each directory name, your program must print the contents of that directory (and, recursively, each subdirectory) in a tree-like format. If no directory names are given, list the contents of the current directory. Your output should match the Linux command: `tree -n --charset=ascii`  (assuming the use of the standard `tree` utility available within an Ubuntu environment)  Note that you do not need to implement text color.
 
@@ -42,7 +43,7 @@ This tree shows the contents of the `tmp` directory and each subdirectory below 
 
 
 
-## Command-line Arguments
+# Command-line Arguments
 
 Your program must support the following two command-line switches, either individually or in combination. If given, these switches will immediately follow the program name (and precede the specified directory). Your program must allow the switches to be provided in any order.
 
@@ -68,7 +69,7 @@ tmp
 
 
 
-## Resource Management
+# Resource Management
 
 All programs must properly manage the resources they use. In this respect, systems programs differ only in that the resources they must manage are often more scarce than those used by general applications. To address this issue, one will often use more readily available resources (e.g., memory) to avoid exhausting other resources.
 
@@ -76,7 +77,7 @@ If you are not careful in your implementation, then your `tree` program will lik
 
 
 
-## Useful Functions
+# Useful Functions
 
 You might find the following functions to be of use (this is not to say that you will need them all or that you will not use others)
 
@@ -91,3 +92,6 @@ You might find the following functions to be of use (this is not to say that you
 - During testing, the autograder creates two directories named: `ag_tree1` and `ag_tree2`. Please make sure your repository does not include directories with these names.
 - Please do not commit compiled/executable files to git (ie. do not add: `a.out`, `tree` (the executable file, without an extension), `main.o`, etc.)
 - For full credit, your git commit history must be sufficiently detailed to illustrate how you approached the assignment, addressed bugs, etc. Commit often, with descriptive commit labels. For example: "initial data structures and function prototypes", "implemented the -a switch to display hidden files", "solved resource leak in function xyz()"  There is no fixed minimum number of commits. As one example guideline, you will not be eligible for full credit if your submitted git repository includes just 2-3 commits where large blocks of code are added in each commit.
+
+# Rubric
+![tree_rubric](https://github.com/jerhuan205/CSC357-SystemsProgramming/assets/122332863/066bf46d-a367-4059-b0b5-930b26f48b44)
