@@ -7,9 +7,8 @@ For this assignment you will write a program that will use multiple processes to
 
 ### Setup
 
-Clone the repository.
-
 - Accept the [GitHub Classroom Assignment 4](https://github.com/amigler-cp/assignment-4-jerhuan205) invitation.
+- Clone the repository.
 
 
 
@@ -120,6 +119,7 @@ process 29396 processing line 6 exited normally
 process 29398 processing line 7 exited normally
 ```
 
+
 ### Test Concurrent Downloads
 
 Create an input file with several time-consuming downloads, for example (`delays.txt`):
@@ -150,6 +150,7 @@ sys	0m0.048s
 
 ```
 
+
 ### Test Failed Downloads
 
 Create an input file with an invalid URL and/or an expected timeout (delay longer than max allowed time), for example (`invalid_urls.txt`):
@@ -169,4 +170,5 @@ process 28946 processing line 2 terminated with exit status: 28
 
 
 
-
+# Rubric
+![processdownloading_rubric](https://github.com/jerhuan205/CSC357-SystemsProgramming/assets/122332863/c3aaa6c3-2d8a-4b80-b5ff-145c90621ecf)
