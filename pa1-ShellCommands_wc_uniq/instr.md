@@ -2,7 +2,8 @@
 
 This assignment serves as an introduction to programming in C. As the first assignment, the programs that you will write are smaller than you may be used to and smaller than what is to come. Take the opportunity to emphasize a focused understanding, to explore the use of new tools to aid in your programming, and to reinforce concepts from prior coursework and projects. Challenge yourself to develop a quality solution that goes beyond a solution that just works.
 
-# Course Learning Objectives
+
+### Course Learning Objectives
 
 This assignment addresses the following course learning objectives.
 
@@ -14,11 +15,21 @@ This assignment addresses the following course learning objectives.
  Indirect
 - Use standard UNIX user-level commands and the UNIX software development environment.
 
+
+
+# Setup
+
+- Accept the [GitHub Classroom Assignment 1 invitation](https://github.com/amigler-cp/357-assignment-1-jerhuan205).
+- Clone the repository.
+
+
+
 # The Tasks
 
 There are two separate tasks listed below. Each task asks that you write a program to emulate a program commonly found in Unix installations.
 
-### Task 1 - word count
+
+## Task 1 - word count
 
 The `wc` program is a utility that counts the number of lines, words, and bytes in its input.
 
@@ -30,7 +41,8 @@ Write a program (with `main` function in a file named `word_count.c`) that takes
 
 __Note__: Your program must not dynamically allocate memory (e.g., by using one of the `_alloc` functions). It should read a single character at a time. For full credit, a valgrind analysis of your program must not report any issues.
 
-### Task 2 - unique lines
+
+## Task 2 - unique lines
 
 The `uniq` program is a common utility available in many Unix installations. This program echoes (to `stdout`) its input, but will print only a single instance of consecutive matching lines.
 
@@ -54,6 +66,8 @@ Write a program (with `main` in a file named `uniq.c`) that takes a single (opti
 
 __Note__: your program must not explicitly dynamically allocate memory (e.g., by using one of the `_alloc` functions). It should use the `fgets()` function. You may assume a maximum line length of 512 bytes (make sure to account for the string termination character.) For full credit, a valgrind analysis of your program must not report any issues.
 
+
+
 # Testing
 
 On each git push to your repository, a sequence of preliminary tests will be automatically performed. These tests confirm that your output generally matches the output from the built-in `wc` and `uniq` commands. You may use the following steps to test interactively:
@@ -74,11 +88,15 @@ On each git push to your repository, a sequence of preliminary tests will be aut
 
     `diff test_output expected_output`
 
+
+
 # Deliverables
 
 - Source Code - Push all relevant source code to your repository.
 - Include your full name and Cal Poly email address in a `README.md` file within your repository.
 - For full credit, your git commit history must be sufficiently detailed to illustrate how you approached the assignment, addressed bugs, etc. Commit often, with descriptive commit labels. For example: "initial structures and function prototypes", "implemented feature xyz", "solved resource leak in function xyz()"  There is no fixed minimum number of commits. As one example guideline, you will not be eligible for full credit if your submitted git repository includes just 2-3 commits where large blocks of code are added in each commit.
+
+
 
 # Rubric
 
