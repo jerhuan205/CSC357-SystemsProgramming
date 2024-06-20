@@ -153,7 +153,7 @@ char *uint32_to_str(uint32_t i)
 
 # Deliverables
 
-- Source Code - Push all relevant source code and an appropriate Makefile to your repository.
+- Source Code - Push all relevant source code and an appropriate `Makefile` to your repository.
 - During testing, the autograder creates several files & directories named with the prefix `ag_`. Please make sure your repository does not include directories with this prefix.
 - Please do not commit compiled/executable files to git (ie. do not add `a.out`, `fs_simulator` (the executable file, without an extension), `main.o`, etc.)
 - For full credit, your git commit history must be sufficiently detailed to illustrate how you approached the assignment, addressed bugs, etc. Commit often, with descriptive commit labels. For example: "initial data structures and function prototypes", "implemented the -a switch to display hidden files", "solved resource leak in function xyz()"  There is no fixed minimum number of commits. As one example guideline, you will not be eligible for full credit if your submitted git repository includes just 2-3 commits where large blocks of code are added in each commit.
