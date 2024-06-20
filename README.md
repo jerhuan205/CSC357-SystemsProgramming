@@ -17,4 +17,4 @@ I hope my code simply serves as a guideline or a small push for you to get back 
 Once you finish this course, you're going to feel great. Trust me, I ended up revisiting the assignments!
 
 # Contents
-All of the assignment pdf details, the Makefiles, and the **glorious* code** are included. Here and there I might add some pictures of program flow / planning.
+All of the assignment pdf details, the Makefiles, and the *glorious code* are included. Here and there I might add some pictures of program flow / planning.
