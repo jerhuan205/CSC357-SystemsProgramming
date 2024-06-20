@@ -8,9 +8,10 @@ This assignment should serve to further hone your C programming skills and to pr
 
 # Setup
 
-Clone the repository.
+- Accept the [GitHub Classroom Assignment 2 invitation](https://github.com/amigler-cp/357-assignment-2-jerhuan205).
+- Clone the repository.
 
-There are two provided example file systems found in sub-directories of the initial project repository. One (`empty/`) contains only a root directory. The other (`fs`) contains a few files and directories as demonstrated by the commands below. I recommend that you copy one of these and test with the copy while developing to avoid corrupting the provided files. You may also restore these directories from the git repository. Or, the sample file system directories may be found in this repository: [https://github.com/amigler/357-a2-starter]
+There are two provided example file systems found in sub-directories of the initial project repository. One (`empty/`) contains only a root directory. The other (`fs`) contains a few files and directories as demonstrated by the commands below. I recommend that you copy one of these and test with the copy while developing to avoid corrupting the provided files. You may also restore these directories from the git repository. Or, the sample file system directories may be found in this repository: https://github.com/amigler/357-a2-starter
 
 ```
 > ls
@@ -34,13 +35,13 @@ There are two provided example file systems found in sub-directories of the init
 ```
 
 
+
 # Requirements
 
 The following outlines the requirements for your program.
 
 
-
-### Functional Overview
+## Functional Overview
 
 One approach to a file system is to store information (metadata) that pertains to a "file" (e.g., a regular file or a directory) in an [inode](https://en.wikipedia.org/wiki/Inode). This metadata includes information such as:
 - the physical location of the file's contents on the storage medium (e.g., hard disk)
@@ -53,7 +54,7 @@ We will **_not_** simulate all of this.
 Of note, the metadata for an inode does not contain the name of the file. Instead, a directory maps names to inodes. But a directory is also a "file". This is what we will simulate.
 
 
-#### **Some Specifics**
+### **Some Specifics**
 
 Your program will store a fixed number of "inodes" (which is not unreasonable when simulating a physical device). The metadata for these "inodes", stored in a file named inodes_list will contain only a number (an index) and a "type" to indicate a directory ('d') or a file ('f'). The contents of the "file" associated with each "inode" are to be stored in a regular file with name matching the index number (i.e., if your program is meant to access the contents of the "file" associated with "inode" 3721, then it will open the file named "3721"; this is a simplification of tracking blocks on a physical medium).
 
@@ -64,7 +65,7 @@ The content of an example `inodes_list` file is listed below. Note that this is 
 ![Screen Shot 2023-04-14 at 5 06 14 PM](https://github.com/jerhuan205/CSC357-SystemsProgramming/assets/122332863/f640cf1d-3950-4df5-9dbb-bd56b136c465)
 
 
-#### **Directory Representation**
+### **Directory Representation**
 
 The contents of a directory will be a sequence of file entries. Each file entry will specify, in this order, the inode number for the entry (use the `uint32_t` type defined in `stdint.h` to represent an unsigned 32-bit integer) and the name of the entry, up to 32 characters. File names less than 32 characters will include a null character within the first 32 characters (but a full 32 charactes must be stored in the file to keep each entry the same size); it is valid to use the full 32 characters for the file name, so your program must account for the lack of a null character in that case. The entries within a directory are stored as binary representations of each piece of data.
 
@@ -73,12 +74,12 @@ The following is an example of a directory corresponding to inode number 3, cont
 ![Screen Shot 2023-04-14 at 5 07 39 PM](https://github.com/jerhuan205/CSC357-SystemsProgramming/assets/122332863/e7831222-0675-4976-9277-33a511bd8252)
 
 
-##### **Initial Directory**
+#### **Initial Directory**
 
 Your program will begin in the (assumed) directory at inode 0 (this is meant to be the root of the file system, typically referenced as /). Your program will then take commands from the user to traverse and manipulate the file system (see below).
 
 
-#### **File Representation**
+### **File Representation**
 
 The inode file corresponding to a plain file (type f) in your simulated filesystem should contain the full file name stored as ASCII text, followed by a single newline character. The following is an example of the content of inode file `4`, representing a file with name `file.tex`:
 
