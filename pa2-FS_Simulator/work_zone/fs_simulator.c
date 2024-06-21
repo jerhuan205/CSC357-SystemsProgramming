@@ -7,9 +7,17 @@
 
 #define MAX_INODES 1024
 #define MIN_INODES 0
+
 #define FNAME_SIZE 32
 #define NULL_TERM 1
 #define SPACE 1
+
+#define CMD_LS 1
+#define CMD_CD 2
+#define CMD_MKDIR 3
+#define CMD_TOUCH 4
+#define CMD_EXIT 5
+#define CMD_UNKNOWN 0
 
 // Each inode has an associated index (a number) and type ('d' or 'f')
 typedef struct {
@@ -115,6 +123,7 @@ int read_dir_list(Entry* dir_list, char* dir_name, int rem_inodes)
 
 	// Read separately:
 	// First 1 inode index (4 bytes) from the directory's file and store this in buff until we are at the end of dir_file
+		// fread(*buffer, size of n, n elements to read, *file_stream);
 	while (fread(&buff_inode, inode_index_size, one_index, dir_file) == 1)
 	{
 		// Fill our 'current working directory' with information
@@ -147,6 +156,17 @@ int read_dir_list(Entry* dir_list, char* dir_name, int rem_inodes)
 }
 
 
+
+// Function
+int get_command(const char *cmd)
+{
+	if (strcmp(cmd, "ls") == 0) 	{return CMD_LS;}
+	if (strcmp(cmd, "cd") == 0) 	{return CMD_CD;}
+	if (strcmp(cmd, "mkdir") == 0) 	{return CMD_MKDIR;}
+	if (strcmp(cmd, "touch") == 0) 	{return CMD_TOUCH;}
+	if (strcmp(cmd, "exit") == 0) 	{return CMD_EXIT;}
+	return CMD_UNKNOWN;
+}
 
 // DEBUGGING FUNCTIONS
 void echo_present_inodes(Inode* inodes_list)
@@ -230,4 +250,91 @@ int main(int argc, char* argv[])
 	echo_cur_dir(dir_list); // This should yield the same displayed contents as "xxd -c 36 fs/0"
 	printf("\n-s-p-a-c-e-\n");
 	echo_n_entries(dir_list, 10);
+
+	// Buffers to store User input
+	char input[9 + SPACE + FNAME_SIZE + SPACE + NULL_TERM];
+	char cmd[9 + NULL_TERM] = "";
+	char args[FNAME_SIZE + NULL_TERM] = "";
+	while (1)
+	{
+		// Flush the input each time
+		for (int i = 0; i < sizeof(input); i++)
+		{
+			input[i] = 0;
+		}
+		for (int i = 0; i < sizeof(cmd); i++)
+		{
+			cmd[i] = 0;
+		}
+		for (int i = 0; i < sizeof(args); i++)
+		{
+			args[i] = 0;
+		}
+
+		// Prompt user for commands to read as text from stdin
+		printf("> ");
+
+		// Read the user input until a new-line character or EOF
+			// fgets(*string, n chars to read, *file_stream);
+		if (fgets(input, sizeof(input), stdin) != NULL)
+		{
+			// Scan the input string and replace the new-line inputted by the user with a null terminator
+			input[strcspn(input, "\n")] = '\0';
+
+			// If the user inputs more than 42 chars, then reprompt user for input
+			if (strlen(input) == sizeof(input) - 1 && input[sizeof(input) - 2] != '\n')
+			{
+				printf("Input exceeded maximum length. Please enter a shorter input.\n");
+
+				// Flush out remaining characters when there is an overflow
+				int c;
+				while ((c = getchar()) != '\n' && c != EOF);
+				continue;
+			}
+		}
+		else
+		{
+			printf("Error reading input.\n");
+			continue;
+		}
+
+		// Parse the input for the command and arguments
+		sscanf(input, "%s %[^\n]", cmd, args);
+
+		// If the arg size is more than 32 chars, then truncate down to 32
+		int len_args = strlen(args);
+		if (len_args > FNAME_SIZE)
+		{
+			args[32] = '\0';
+			len_args = 32;
+			printf("Argument truncated down to 32 bytes %s\n", args);
+		}
+
+		int fs_cmd = get_command(cmd);
+
+		// File Simulator commands
+		switch (fs_cmd)
+		{
+			case CMD_LS:
+				printf("matches ls\n");
+				break;
+			case CMD_CD:
+				printf("matches cd\n");
+				break;
+			case CMD_MKDIR:
+				printf("matches mkdir\n");
+				break;
+			case CMD_TOUCH:
+				printf("matches touch\n");
+				break;
+			case CMD_EXIT:
+				printf("matches exit\n");
+				break;
+			default:
+				printf("nothing \n");
+		}
+		printf("cmd %s\n", cmd);
+		printf("sizeof(cmd) %ld\n", sizeof(cmd));
+		printf("args %s\n", args);
+	}
 }
