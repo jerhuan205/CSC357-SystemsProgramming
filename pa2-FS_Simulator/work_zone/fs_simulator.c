@@ -5,13 +5,16 @@
 #include <string.h>
 #include <signal.h>
 
+// Inode count constants
 #define MAX_INODES 1024
 #define MIN_INODES 0
 
+// Input string constants
 #define FNAME_SIZE 32
 #define NULL_TERM 1
 #define SPACE 1
 
+// FS command constants
 #define CMD_LS 1
 #define CMD_CD 2
 #define CMD_MKDIR 3
@@ -19,6 +22,7 @@
 #define CMD_EXIT 5
 #define CMD_UNKNOWN 0
 
+// DEV command constants
 #define DEV_INODES_LIST 6
 #define DEV_N_INODES 7
 #define DEV_DIRECTORY 8
@@ -79,7 +83,7 @@ int read_inodes_list(Inode* inodes_list)
 	int one_inode = 1;
 
 	// Read 1 inode (5 bytes) from the inodes_list and store this in buff until we are at the end of "inodes_list"
-		// fread(*buffer, size of n, n elements to read, *file_stream);
+	// fread(*buffer, size of n, n elements to read, *file_stream);
 	while (num_inodes < MAX_INODES && fread(buff, inode_size, one_inode, inodes_list_fp) != 0)
 	{
 		inodes_list[num_inodes].index = buff[0];
@@ -128,7 +132,7 @@ int read_dir_list(Entry* dir_list, char* dir_name, int rem_inodes)
 
 	// Read separately:
 	// First 1 inode index (4 bytes) from the directory's file and store this in buff until we are at the end of dir_file
-		// fread(*buffer, size of n, n elements to read, *file_stream);
+	// fread(*buffer, size of n, n elements to read, *file_stream);
 	while (fread(&buff_inode, inode_index_size, one_index, dir_file) == 1)
 	{
 		// Fill our 'current working directory' with information
@@ -162,7 +166,8 @@ int read_dir_list(Entry* dir_list, char* dir_name, int rem_inodes)
 
 
 
-// Function
+// Function compares the user input string with program key-strings
+// Returns a constant associated to a specified string
 int get_command(const char *cmd)
 {
 	// If it is a Program Simulation command:
@@ -245,28 +250,28 @@ int main(int argc, char* argv[])
 	int rem_inodes = MAX_INODES - cur_inodes;
 
 	/* T E S T I N G */
-	printf("cur_inodes-%d\n", cur_inodes);
-	printf("rem_inodes-%d\n", rem_inodes);
-	echo_present_inodes(inodes_list);	// This should yield the same displayed contents as "xxd -c 5 fs/inodes_list"
-	printf("\n-s-p-a-c-e-\n");
-	echo_n_inodes(inodes_list, 10);
+//	printf("cur_inodes-%d\n", cur_inodes);
+//	printf("rem_inodes-%d\n", rem_inodes);
+//	echo_present_inodes(inodes_list);	// This should yield the same displayed contents as "xxd -c 5 fs/inodes_list"
+//	printf("\n-s-p-a-c-e-\n");
+//	echo_n_inodes(inodes_list, 10);
 
 	// Array holding the entries of our 'current working' directory
 	Entry dir_list[rem_inodes];
 
 	// For simulation, user starts in directory inode 0.
 	Entry current_directory = {0, "0"};
-//	uint32_t dir_index = 0;
-//	char dir_name[] = "0";
+	//	uint32_t dir_index = 0;
+	//	char dir_name[] = "0";
 
 	// Read the current_directory file and get the current number of entries
 	int num_entries = read_dir_list(dir_list, current_directory.name, rem_inodes);
 
 	/* T E S T I N G */
-	printf("cur_dir inode:%d, cur_dir name:%s\n", current_directory.inode, current_directory.name);
-	echo_cur_dir(dir_list); // This should yield the same displayed contents as "xxd -c 36 fs/0"
-	printf("\n-s-p-a-c-e-\n");
-	echo_n_entries(dir_list, 10);
+//	printf("cur_dir inode:%d, cur_dir name:%s\n", current_directory.inode, current_directory.name);
+//	echo_cur_dir(dir_list); // This should yield the same displayed contents as "xxd -c 36 fs/0"
+//	printf("\n-s-p-a-c-e-\n");
+//	echo_n_entries(dir_list, 10);
 
 	// Buffers to store User input
 	char input[9 + SPACE + FNAME_SIZE + SPACE + NULL_TERM];
@@ -292,7 +297,7 @@ int main(int argc, char* argv[])
 		printf("> ");
 
 		// Read the user input until a new-line character or EOF
-			// fgets(*string, n chars to read, *file_stream);
+		// fgets(*string, n chars to read, *file_stream);
 		if (fgets(input, sizeof(input), stdin) != NULL)
 		{
 			// Scan the input string and replace the new-line inputted by the user with a null terminator
@@ -334,6 +339,7 @@ int main(int argc, char* argv[])
 			printf("Argument truncated down to 32 bytes %s\n", args);
 		}
 
+		// Get the command constant from user input string
 		int fs_cmd = get_command(cmd);
 
 		// File Simulator commands
