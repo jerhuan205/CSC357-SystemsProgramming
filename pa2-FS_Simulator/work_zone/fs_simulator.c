@@ -19,6 +19,11 @@
 #define CMD_EXIT 5
 #define CMD_UNKNOWN 0
 
+#define DEV_INODES_LIST 6
+#define DEV_N_INODES 7
+#define DEV_DIRECTORY 8
+#define DEV_N_ENTRIES 9
+
 // Each inode has an associated index (a number) and type ('d' or 'f')
 typedef struct {
 	uint32_t index;
@@ -160,14 +165,23 @@ int read_dir_list(Entry* dir_list, char* dir_name, int rem_inodes)
 // Function
 int get_command(const char *cmd)
 {
+	// If it is a Program Simulation command:
 	if (strcmp(cmd, "ls") == 0) 	{return CMD_LS;}
 	if (strcmp(cmd, "cd") == 0) 	{return CMD_CD;}
 	if (strcmp(cmd, "mkdir") == 0) 	{return CMD_MKDIR;}
 	if (strcmp(cmd, "touch") == 0) 	{return CMD_TOUCH;}
 	if (strcmp(cmd, "exit") == 0) 	{return CMD_EXIT;}
+
+	// If it is a Debugging command:
+	if (strcmp(cmd, "e_ilist") == 0) {return DEV_INODES_LIST;}
+	if (strcmp(cmd, "e_nnodes") == 0) {return DEV_N_INODES;}
+	if (strcmp(cmd, "e_dir") == 0) {return DEV_DIRECTORY;}
+	if (strcmp(cmd, "e_nitems") == 0) {return DEV_N_ENTRIES;}
+
 	return CMD_UNKNOWN;
 }
 
+// "e_ilist"
 // DEBUGGING FUNCTIONS
 void echo_present_inodes(Inode* inodes_list)
 {
@@ -181,6 +195,7 @@ void echo_present_inodes(Inode* inodes_list)
 	}
 }
 
+// "e_nnodes"
 void echo_n_inodes(Inode* inodes_list, int n_inodes)
 {
 	printf("DBUG: inodes_list contents up to %d inodes\n", n_inodes);
@@ -190,6 +205,7 @@ void echo_n_inodes(Inode* inodes_list, int n_inodes)
 	}
 }
 
+// "e_dir"
 void echo_cur_dir(Entry* dir_list)
 {
 	printf("DBUG: dir_list contents\n");
@@ -202,6 +218,7 @@ void echo_cur_dir(Entry* dir_list)
 	}
 }
 
+// "e_nitems"
 void echo_n_entries(Entry* dir_list, int n_entries)
 {
 	printf("DBUG: dir_list contents up to %d entries\n", n_entries);
@@ -299,7 +316,14 @@ int main(int argc, char* argv[])
 		}
 
 		// Parse the input for the command and arguments
-		sscanf(input, "%s %[^\n]", cmd, args);
+		sscanf(input, "%s %s", cmd, args);
+
+		// Unecessary for project requirements, but will make user interface cleaner to interact with
+		if (strlen(cmd) >= sizeof(cmd))
+		{
+			printf("Input exceeded maximum length for command. Please enter an input under less than 9 characters.\n");
+			continue;
+		}
 
 		// If the arg size is more than 32 chars, then truncate down to 32
 		int len_args = strlen(args);
@@ -330,10 +354,25 @@ int main(int argc, char* argv[])
 			case CMD_EXIT:
 				printf("matches exit\n");
 				break;
+			// The rest are not necessary, but just easier than hardcoding in the inode # and name
+			// when debugging the in-memory contents.
+			case DEV_INODES_LIST:
+				echo_present_inodes(inodes_list);
+				break;
+			case DEV_N_INODES:
+				echo_n_inodes(inodes_list, 0);
+				break;
+			case DEV_DIRECTORY:
+				echo_cur_dir(dir_list); // This should yield the same displayed contents as "xxd -c 36 fs/0"
+				break;
+			case DEV_N_ENTRIES:
+				echo_n_entries(dir_list, 10);
+				break;
 			default:
 				printf("nothing \n");
 		}
 		printf("cmd %s\n", cmd);
+		printf("strlen(cmd) %ld\n", strlen(cmd));
 		printf("sizeof(cmd) %ld\n", sizeof(cmd));
 		printf("args %s\n", args);
 	}
