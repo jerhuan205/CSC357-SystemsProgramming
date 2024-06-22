@@ -1,54 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <unistd.h>
-#include <string.h>
-#include <signal.h>
-
-// Inode count constants
-#define MAX_INODES 1024
-#define MIN_INODES 0
-
-// Input string constants
-#define FNAME_SIZE 32
-#define NULL_TERM 1
-#define SPACE 1
-
-// FS command constants
-#define CMD_LS 1
-#define CMD_CD 2
-#define CMD_MKDIR 3
-#define CMD_TOUCH 4
-#define CMD_EXIT 5
-#define CMD_UNKNOWN 0
-
-// DEV command constants
-#define DEV_INODES_LIST 6
-#define DEV_N_INODES 7
-#define DEV_DIRECTORY 8
-#define DEV_N_ENTRIES 9
-
-// Each inode has an associated index (a number) and type ('d' or 'f')
-typedef struct {
-	uint32_t index;
-	char 	 type;
-} Inode;
-
-// Each directory will always display entries that have an inode (or similar to Inode type: index) and a name of up to 32 chars.
-typedef struct {
-	uint32_t inode;
-	char 	 name[FNAME_SIZE + NULL_TERM];
-} Entry;
-
-// In memory...
-// The inodes_list will be represented as an Array, holding Inode types.
-
-// A directory will be represented as an Array, holding a sequence of Entry types.
-// This is an inode that can point to other inodes through type Inode index / Entry inode
-
-// A file will be represented as just a single instance of a name that can be up to 32 chars.
-
-
+#include "fs_simulator.h"
 
 // Function parses and verifies program arguments for correct startup
 void parse_args(int argc, char* argv1)
@@ -178,16 +128,18 @@ int get_command(const char *cmd)
 	if (strcmp(cmd, "exit") == 0) 	{return CMD_EXIT;}
 
 	// If it is a Debugging command:
-	if (strcmp(cmd, "e_ilist") == 0) {return DEV_INODES_LIST;}
-	if (strcmp(cmd, "e_nnodes") == 0) {return DEV_N_INODES;}
-	if (strcmp(cmd, "e_dir") == 0) {return DEV_DIRECTORY;}
-	if (strcmp(cmd, "e_nitems") == 0) {return DEV_N_ENTRIES;}
+	if (strcmp(cmd, "e_ilist") == 0)   {return DEV_INODES_LIST;}
+	if (strcmp(cmd, "e_ninodes") == 0) {return DEV_N_INODES;}
+	if (strcmp(cmd, "e_dir") == 0)     {return DEV_DIRECTORY;}
+	if (strcmp(cmd, "e_nitems") == 0)  {return DEV_N_ENTRIES;}
 
 	return CMD_UNKNOWN;
 }
 
+
+
+/* DEBUGGING FUNCTIONS */
 // "e_ilist"
-// DEBUGGING FUNCTIONS
 void echo_present_inodes(Inode* inodes_list)
 {
 	printf("DBUG: inodes_list contents\n");
@@ -200,7 +152,7 @@ void echo_present_inodes(Inode* inodes_list)
 	}
 }
 
-// "e_nnodes"
+// "e_ninodes"
 void echo_n_inodes(Inode* inodes_list, int n_inodes)
 {
 	printf("DBUG: inodes_list contents up to %d inodes\n", n_inodes);
@@ -363,10 +315,10 @@ int main(int argc, char* argv[])
 			// The rest are not necessary, but just easier than hardcoding in the inode # and name
 			// when debugging the in-memory contents.
 			case DEV_INODES_LIST:
-				echo_present_inodes(inodes_list);
+				echo_present_inodes(inodes_list); // This should yield the same displayed contents as "xxd -c 5 fs/inodes_list"
 				break;
 			case DEV_N_INODES:
-				echo_n_inodes(inodes_list, 0);
+				echo_n_inodes(inodes_list, 10);
 				break;
 			case DEV_DIRECTORY:
 				echo_cur_dir(dir_list); // This should yield the same displayed contents as "xxd -c 36 fs/0"
@@ -377,9 +329,9 @@ int main(int argc, char* argv[])
 			default:
 				printf("nothing \n");
 		}
-		printf("cmd %s\n", cmd);
-		printf("strlen(cmd) %ld\n", strlen(cmd));
-		printf("sizeof(cmd) %ld\n", sizeof(cmd));
-		printf("args %s\n", args);
+//		printf("cmd %s\n", cmd);
+//		printf("strlen(cmd) %ld\n", strlen(cmd));
+//		printf("sizeof(cmd) %ld\n", sizeof(cmd));
+//		printf("args %s\n", args);
 	}
 }
