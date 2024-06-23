@@ -25,7 +25,7 @@ void parse_args(int argc, char* argv1)
 // Returns the number of current inodes present in simulation
 int read_inodes_list(Inode* inodes_list)
 {
-	// Load the inodes_list file
+	// Open the inodes_list file
 	FILE* inodes_list_fp = fopen("inodes_list", "r");
 	char buff[5];
 	int num_inodes = MIN_INODES;
@@ -68,7 +68,7 @@ int read_inodes_list(Inode* inodes_list)
 // This number is also the index of the next entry to add in this directory.
 int read_dir_list(Entry* dir_list, char* dir_name, int rem_inodes)
 {
-	// Load the specified file according to directory name
+	// Open the specified file according to directory name
 	FILE* dir_file = fopen(dir_name, "r");
 	if (dir_file == NULL)
 	{
@@ -134,6 +134,38 @@ int get_command(const char *cmd)
 	if (strcmp(cmd, "e_nitems") == 0)  {return DEV_N_ENTRIES;}
 
 	return CMD_UNKNOWN;
+}
+
+
+
+// TODO: Function displays the entries of the current working directory
+void fs_ls(char* dir_name)
+{
+	// Open the file name of the directory
+	FILE* dir_file = fopen(dir_name, "r");
+	char buff[36];
+	int line_size = sizeof(buff);
+	int one_line = 1;
+
+	// Read all 36-bytes of characters: 4-byte inode, 32-byte name
+	// The inode index from the directory's file is stored in the first 4 spots of buff
+	// The next 32 spots are characters that make up the inode's name.
+	// fread(*buffer, size of n, n elements to read, *file_stream);
+	while (fread(buff, line_size, one_line, dir_file) != 0)
+	{
+		// We first want to display the inode number.
+		printf("%d ", buff[0]);
+
+		// Next are the individual characters making up the inode name.
+		for (int i = 4; i < line_size; i++)
+		{
+			// Stop displaying characters for ASCII values of '0'
+			if (buff[i] == 0) { break; }
+			printf("%c", buff[i]);	// for ASCII-values, %c instead of %s
+		}
+		printf("\n");
+	}
+	fclose(dir_file);
 }
 
 
@@ -299,6 +331,7 @@ int main(int argc, char* argv[])
 		{
 			case CMD_LS:
 				printf("matches ls\n");
+				fs_ls(current_directory.name);
 				break;
 			case CMD_CD:
 				printf("matches cd\n");
