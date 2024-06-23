@@ -7,6 +7,7 @@
 #include <signal.h>
 
 
+
 /* CONSTANTS */
 // Inode count constants
 #define MAX_INODES 1024
@@ -48,7 +49,6 @@ typedef struct {
 
 
 
-
 /* DEBRIEFS */
 // In memory...
 // The inodes_list will be represented as an Array, holding Inode types.
@@ -76,6 +76,14 @@ int read_dir_list(Entry* dir_list, char* dir_name, int rem_inodes);
 // Function compares the user input string with program key-strings
 // Returns a constant associated to a specified string
 int get_command(const char *cmd);
+
+
+
+/* SIMULATOR FUNCTIONS */
+// Function lists the files of the current directory indicated by dir_name
+void fs_ls(char* dir_name);
+// TODO:
+
 
 
 /* DEBUGGING FUNCTIONS */
