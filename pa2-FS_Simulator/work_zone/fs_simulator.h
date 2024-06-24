@@ -85,11 +85,15 @@ int get_command(const char *cmd);
 // Function lists the files of the current directory indicated by dir_name
 void fs_ls(char* dir_name);
 
-// TODO
-//void fs_cd(Inode* inodes_list, Entry* dir_list, uint32_t* dir_inode, char* dir_name, char* args, int* free_spot, int rem_inodes);
+// Function changes the current working directory information and repopulates the array
 void fs_cd(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* args, int* free_spot, int rem_inodes);
 
+// TODO:
+void fs_mkdir();
 
+void fs_touch();
+
+void fs_exit();
 
 /* DEBUGGING FUNCTIONS */
 // "e_ilist"
