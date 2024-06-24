@@ -138,7 +138,7 @@ int get_command(const char *cmd)
 
 
 
-// TODO: Function displays the entries of the current working directory
+// Function displays the entries of the current working directory of Simulator Program
 void fs_ls(char* dir_name)
 {
 	// Open the file name of the directory
@@ -233,13 +233,6 @@ int main(int argc, char* argv[])
 	int starting_inodes = cur_inodes;
 	int rem_inodes = MAX_INODES - cur_inodes;
 
-	/* T E S T I N G */
-//	printf("cur_inodes-%d\n", cur_inodes);
-//	printf("rem_inodes-%d\n", rem_inodes);
-//	echo_present_inodes(inodes_list);	// This should yield the same displayed contents as "xxd -c 5 fs/inodes_list"
-//	printf("\n-s-p-a-c-e-\n");
-//	echo_n_inodes(inodes_list, 10);
-
 	// Array holding the entries of our 'current working' directory
 	Entry dir_list[rem_inodes];
 
@@ -250,12 +243,6 @@ int main(int argc, char* argv[])
 
 	// Read the current_directory file and get the current number of entries
 	int num_entries = read_dir_list(dir_list, current_directory.name, rem_inodes);
-
-	/* T E S T I N G */
-//	printf("cur_dir inode:%d, cur_dir name:%s\n", current_directory.inode, current_directory.name);
-//	echo_cur_dir(dir_list); // This should yield the same displayed contents as "xxd -c 36 fs/0"
-//	printf("\n-s-p-a-c-e-\n");
-//	echo_n_entries(dir_list, 10);
 
 	// Buffers to store User input
 	char input[9 + SPACE + FNAME_SIZE + SPACE + NULL_TERM];
@@ -345,6 +332,7 @@ int main(int argc, char* argv[])
 			case CMD_EXIT:
 				printf("matches exit\n");
 				break;
+
 			// The rest are not necessary, but just easier than hardcoding in the inode # and name
 			// when debugging the in-memory contents.
 			case DEV_INODES_LIST:
