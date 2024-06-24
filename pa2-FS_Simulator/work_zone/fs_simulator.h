@@ -58,6 +58,7 @@ typedef struct {
 
 // A file will be represented as just a single instance of a name that can be up to 32 chars.
 
+// 'Loading' actions will inolve 'open'ing and 'read'ing files, as well as populating memory blocks.
 
 
 /* PROGRAM FUNCTIONS */
@@ -66,12 +67,13 @@ void parse_args(int argc, char* argv1);
 
 // Function reads the "inodes_list" file and populates the inodes_list contents in memory
 // Returns the number of current inodes present in simulation
-int read_inodes_list(Inode* inodes_list);
+// NOTE: This number is also the next inode that can be added to the inodes_list
+int load_inodes_list(Inode* inodes_list);
 
 // Function reads the directory file and populates the dir_list contents in memory
 // Returns the number of entries in the list
-// This number is also the index of the next entry to add in this directory.
-int read_dir_list(Entry* dir_list, char* dir_name, int rem_inodes);
+// NOTE: This number is also the index of the next entry to add in this directory.
+int load_directory(Entry* dir_list, char* dir_name, int rem_inodes);
 
 // Function compares the user input string with program key-strings
 // Returns a constant associated to a specified string
@@ -82,7 +84,6 @@ int get_command(const char *cmd);
 /* SIMULATOR FUNCTIONS */
 // Function lists the files of the current directory indicated by dir_name
 void fs_ls(char* dir_name);
-// TODO:
 
 
 

@@ -23,7 +23,7 @@ void parse_args(int argc, char* argv1)
 
 // Function reads the "inodes_list" file and populates the inodes_list contents in memory
 // Returns the number of current inodes present in simulation
-int read_inodes_list(Inode* inodes_list)
+int load_inodes_list(Inode* inodes_list)
 {
 	// Open the inodes_list file
 	FILE* inodes_list_fp = fopen("inodes_list", "r");
@@ -66,7 +66,7 @@ int read_inodes_list(Inode* inodes_list)
 // Function reads the directory file and populates the dir_list contents in memory
 // Returns the number of entries in the list
 // This number is also the index of the next entry to add in this directory.
-int read_dir_list(Entry* dir_list, char* dir_name, int rem_inodes)
+int load_directory(Entry* dir_list, char* dir_name, int rem_inodes)
 {
 	// Open the specified file according to directory name
 	FILE* dir_file = fopen(dir_name, "r");
@@ -228,8 +228,9 @@ int main(int argc, char* argv[])
 	// Array holding 1024 possible entries of type Inode from the file "inodes_list"
 	Inode inodes_list[MAX_INODES];
 
-	// Read the "inodes_list" file and get the current number of inodes
-	int cur_inodes = read_inodes_list(inodes_list);
+	// Load the "inodes_list" file and get the current number of inodes
+	// At the same time, populate our inodes_list array
+	int cur_inodes = load_inodes_list(inodes_list);
 	int starting_inodes = cur_inodes;
 	int rem_inodes = MAX_INODES - cur_inodes;
 
@@ -241,8 +242,9 @@ int main(int argc, char* argv[])
 	//	uint32_t dir_index = 0;
 	//	char dir_name[] = "0";
 
-	// Read the current_directory file and get the current number of entries
-	int num_entries = read_dir_list(dir_list, current_directory.name, rem_inodes);
+	// Load the current_directory file and get the current number of entries
+	// At the same time, populate our array of entries (i.e. a Directory)
+	int num_entries = load_directory(dir_list, current_directory.name, rem_inodes);
 
 	// Buffers to store User input
 	char input[9 + SPACE + FNAME_SIZE + SPACE + NULL_TERM];
