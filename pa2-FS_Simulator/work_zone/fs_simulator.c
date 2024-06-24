@@ -1,5 +1,14 @@
 #include "fs_simulator.h"
 
+char *uint32_to_str(uint32_t i)
+{
+	int length = snprintf(NULL, 0, "%lu", (unsigned long)i);   // pretend to print to a string to determine length
+	char* str = malloc(length + 1);                            // allocate space for the actual string
+	snprintf(str, length + 1, "%lu", (unsigned long)i);        // print to string
+
+	return str;
+}
+
 // Function parses and verifies program arguments for correct startup
 void parse_args(int argc, char* argv1)
 {
@@ -65,7 +74,6 @@ int load_inodes_list(Inode* inodes_list)
 
 // Function reads the directory file and populates the dir_list contents in memory
 // Returns the number of entries in the list
-// This number is also the index of the next entry to add in this directory.
 int load_directory(Entry* dir_list, char* dir_name, int rem_inodes)
 {
 	// Open the specified file according to directory name
@@ -138,6 +146,7 @@ int get_command(const char *cmd)
 
 
 
+/* SIMULATOR FUNCTIONS */
 // Function displays the entries of the current working directory of Simulator Program
 void fs_ls(char* dir_name)
 {
@@ -167,6 +176,49 @@ void fs_ls(char* dir_name)
 	}
 	fclose(dir_file);
 }
+
+// Function changes the current working directory information and repopulates the array
+void fs_cd(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* args, int* free_spot, int rem_inodes)
+{
+	// Loop through the entries in our current directory for a match
+	int new_dir = -1;
+	for (int i = 0; i < *free_spot; i++)
+	{
+		if (strcmp(args, dir_list[i].name) == 0)
+		{
+			new_dir = i;
+			break;
+		}
+	}
+
+	// If no match was found, print a message similar to shell
+	if (new_dir == -1)
+	{
+		printf("cd: %s: No such file or directory\n", args);
+	}
+
+	// If the match is not a directory, print a message similar to shell
+	if (inodes_list[(dir_list[new_dir].inode)].type == 'f')
+	{
+		printf("cd: %s: Not a directory\n", dir_list[new_dir].name);
+		return;
+	}
+
+	// Update our current working directory, first the inode
+	current_directory->inode = dir_list[new_dir].inode;
+
+	// Next, the new name needs to be formatted into a string and copied
+	char* new_dir_name = uint32_to_str(dir_list[new_dir].inode);
+	strcpy(current_directory->name, new_dir_name);
+	free(new_dir_name);	// release the pointed memory
+
+	// Load the new directory and populate our new directory with its entries
+	*free_spot = load_directory(dir_list, current_directory->name, rem_inodes);
+}
+
+// TODO:
+
+
 
 
 
@@ -319,11 +371,12 @@ int main(int argc, char* argv[])
 		switch (fs_cmd)
 		{
 			case CMD_LS:
-				printf("matches ls\n");
+				// Display the contents of our 'current working directory'
 				fs_ls(current_directory.name);
 				break;
 			case CMD_CD:
-				printf("matches cd\n");
+				// Change our 'current working directory': inode, name, contents, and size
+				fs_cd(inodes_list, dir_list, &current_directory, args, &num_entries, rem_inodes);
 				break;
 			case CMD_MKDIR:
 				printf("matches mkdir\n");
@@ -352,9 +405,7 @@ int main(int argc, char* argv[])
 			default:
 				printf("nothing \n");
 		}
-//		printf("cmd %s\n", cmd);
-//		printf("strlen(cmd) %ld\n", strlen(cmd));
-//		printf("sizeof(cmd) %ld\n", sizeof(cmd));
-//		printf("args %s\n", args);
+		// End of Switch
 	}
+	// End of program
 }
