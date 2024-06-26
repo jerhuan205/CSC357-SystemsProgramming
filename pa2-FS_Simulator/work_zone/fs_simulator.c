@@ -33,6 +33,18 @@ void parse_args(int argc, char* argv1)
 
 
 
+// Function catches the specified program terminations and makes appropriate changes to the inodes_list file
+void sig_handler(int signum)
+{
+	if (signum == SIGINT) 		{printf("Received SIGINT.\n");}
+	else if (signum == SIGQUIT) 	{printf("Received SIGQUIT.\n");}
+	printf("Writing to inodes_list file...\n");
+	fs_exit(inodes_list, starting_inodes);
+	exit(signum);
+}
+
+
+
 // Function reads the "inodes_list" file and populates the inodes_list contents in memory
 // Returns the number of current inodes present in simulation
 int load_inodes_list(Inode* inodes_list)
@@ -455,6 +467,12 @@ int main(int argc, char* argv[])
 {
 	// Check if the arguments are valid first
 	parse_args(argc, argv[1]);
+
+	// Signals to catch any program terminations.
+	if (signal(SIGQUIT, sig_handler) == SIG_ERR) // "CTRL + \"
+		{ printf("unable to register handler for SIGQUIT\n"); 	return 1; }
+	if (signal(SIGINT, sig_handler) == SIG_ERR) // "CTRL + C"
+		{ printf("unable to register handler for SIGINT\n"); 	return 1; }
 
 	// Array holding 1024 possible entries of type Inode from the file "inodes_list"
 	Inode inodes_list[MAX_INODES];
