@@ -232,19 +232,18 @@ void fs_cd(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* 
 	*free_spot = load_directory(dir_list, current_directory->name, rem_inodes);
 }
 
-// Function creates a new Entry instance in memory and creates a new directory in the shell
-void fs_mkdir(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* args, int* free_spot, int* rem_inodes, int* cur_inodes)
+// Function first checks if there is enough space for more inodes, then checks for matching names of input and directory
+int fs_precreate_helper(Entry* dir_list, char* args, int free_spot, int rem_inodes, int cur_inodes)
 {
-	// If we don't have enough space for more inodes, then report an error
-	if (*cur_inodes >= *rem_inodes)
+	// If we don't have enough space for more inodes, then send a flag for an error
+	if (cur_inodes >= rem_inodes)
 	{
-		printf("Error, not enough space for another directory.\n");
-		return;
+		return 0;
 	}
 
 	// Loop through the entries in our current directory for a match
 	int new_dir_index = -1;
-	for (int i = 0; i < *free_spot; i++)
+	for (int i = 0; i < free_spot; i++)
 	{
 		if (strcmp(args, dir_list[i].name) == 0)
 		{
@@ -254,10 +253,28 @@ void fs_mkdir(Inode* inodes_list, Entry* dir_list, Entry* current_directory, cha
 		new_dir_index = i;
 	}
 
-	// If a file or directory exists with that particular name, print a message similar to shell
+	// If a file or directory exists with that particular name, send a flag for already existing file
 	if (new_dir_index == -1)
+		// Just returning the value of -1
+		{ return new_dir_index; }
+
+	// Return a flag indicating that it is possible to add a new entry
+	return 1;
+}
+
+// Function creates a new Entry instance in memory and creates a new directory in the shell
+void fs_mkdir(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* args, int* free_spot, int* rem_inodes, int* cur_inodes)
+{
+	// Before adding a new Entry, we need to check our capacity and check if the args specifies an existing name in the directory
+	int can_add = fs_precreate_helper(dir_list, args, *free_spot, *rem_inodes, *cur_inodes);
+
+	// If we cannot add a new entry, just print an error message then go back to the main program
+	if (can_add <= 0)
 	{
-		printf("mkdir: cannot create directory '%s': File exists\n", args);
+		// If it was due to space, then display a message regarding an error
+		if (!can_add) 	{ printf("Error, not enough space for another directory.\n"); }
+		// Otherwise, an already existing file doesn't allow for the same name to be added
+		else 		{ printf("mkdir: cannot create directory '%s': File exists\n", args); }
 		return;
 	}
 
@@ -300,6 +317,51 @@ void fs_mkdir(Inode* inodes_list, Entry* dir_list, Entry* current_directory, cha
 	free(new_dir_name);
 
 	// Open the current directory's inode file and append the new directory to its data
+	FILE* dir_file = fopen(current_directory->name, "ab");
+	fwrite(&(dir_list[*free_spot].inode), sizeof(uint32_t), 1, dir_file);
+	fwrite(&(dir_list[*free_spot].name), sizeof(char), 32, dir_file);
+	fclose(dir_file);
+
+	// Increment the current number of inodes and size of our current directory
+	(*cur_inodes)++;
+	(*free_spot)++;
+
+	// Decrement the number of remaining inodes we have left to create
+	(*rem_inodes)--;
+}
+
+// Function creates a new Entry instance in memory and creates a new file in the shell
+void fs_touch(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* args, int* free_spot, int* rem_inodes, int* cur_inodes)
+{
+	// Before adding a new Entry, we need to check our capacity and check if the args specifies an existing name in the directory
+	int can_add = fs_precreate_helper(dir_list, args, *free_spot, *rem_inodes, *cur_inodes);
+
+	// If we cannot add a new entry, just print an error message then go back to the main program
+	if (can_add <= 0)
+	{
+		// If it was due to space, then display a message regarding an error
+		if (!can_add) 	{ printf("Error, not enough space for another file.\n"); }
+		// Otherwise, an already existing file doesn't allow for the same name to be added
+		return;
+	}
+
+	// Add the new entry to our inodes list, with its inode as the current number of inodes and file type of 'f'
+	inodes_list[*cur_inodes].index = *cur_inodes;
+	inodes_list[*cur_inodes].type = 'f';
+
+	// Add the new entry to our 'current working directory' at the free spot in our array
+	dir_list[*free_spot].inode = *cur_inodes;
+	strcpy(dir_list[*free_spot].name, args);
+
+	// Create the new inode file, containing just its name followed by a '\n' char
+	char* new_file_name = uint32_to_str(inodes_list[*cur_inodes].index);
+	FILE* new_file = fopen(new_file_name, "wb");
+	fwrite(&(dir_list[*free_spot].name), sizeof(char), strlen(args), new_file);
+	fputc('\n', new_file);
+	fclose(new_file);
+	free(new_file_name);
+
+	// Open the current directory's inode file and append the new file to its data
 	FILE* dir_file = fopen(current_directory->name, "ab");
 	fwrite(&(dir_list[*free_spot].inode), sizeof(uint32_t), 1, dir_file);
 	fwrite(&(dir_list[*free_spot].name), sizeof(char), 32, dir_file);
@@ -499,7 +561,8 @@ int main(int argc, char* argv[])
 				fs_mkdir(inodes_list, dir_list, &current_directory, args, &num_entries, &rem_inodes, &cur_inodes);
 				break;
 			case CMD_TOUCH:
-				printf("matches touch\n");
+				// Create a new file and add to our 'current working directory' at the size of our array
+				fs_touch(inodes_list, dir_list, &current_directory, args, &num_entries, &rem_inodes, &cur_inodes);
 				break;
 			case CMD_EXIT:
 				// Exit program, writing to the "inodes_list" file any changes since our starting number of inodes

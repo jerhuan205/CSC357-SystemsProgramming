@@ -49,7 +49,7 @@ typedef struct {
 
 
 
-/* DEBRIEFS */
+/* ------------------------------------------------------------ DEBRIEFS ------------------------------------------------------------ */
 // In memory...
 // The inodes_list will be represented as an Array, holding Inode types.
 
@@ -62,7 +62,7 @@ typedef struct {
 
 
 
-/* PROGRAM FUNCTIONS */
+/* ------------------------------------------------------------ PROGRAM FUNCTIONS ------------------------------------------------------------ */
 // Function parses and verifies program arguments for correct startup
 void parse_args(int argc, char* argv1);
 
@@ -76,13 +76,16 @@ int load_inodes_list(Inode* inodes_list);
 // NOTE: This number is also the index of the next entry to add in this directory.
 int load_directory(Entry* dir_list, char* dir_name, int rem_inodes);
 
+// Function initializes the remaining entries of a directory with nonexistent blocks
+void init_rem_entries(Entry* dir_list, int start, int end);
+
 // Function compares the user input string with program key-strings
 // Returns a constant associated to a specified string
 int get_command(const char *cmd);
 
 
 
-/* SIMULATOR FUNCTIONS */
+/* ------------------------------------------------------------ SIMULATOR FUNCTIONS ------------------------------------------------------------ */
 // Function lists the files of the current directory indicated by dir_name
 void fs_ls(char* dir_name);
 
@@ -93,13 +96,13 @@ void fs_cd(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* 
 void fs_mkdir(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* args, int* free_spot, int* rem_inodes, int* cur_inodes);
 
 // Function creates a new Entry instance in memory and creates a new file in the shell
-void fs_touch(Inode* inodes_list, Entry* dir_list);
+void fs_touch(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* args, int* free_spot, int* rem_inodes, int* cur_inodes);
 
 // Function adds the changes made to our inodes_list in Memory to the 'inodes_list' file
 void fs_exit(Inode* inodes_list, int starting_inodes);
 
 
-/* DEBUGGING FUNCTIONS */
+/* ------------------------------------------------------------ DEBUGGING FUNCTIONS ------------------------------------------------------------ */
 // "e_ilist"
 void echo_present_inodes(Inode* inodes_list);
 
