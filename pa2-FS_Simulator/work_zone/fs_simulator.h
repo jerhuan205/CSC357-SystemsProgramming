@@ -92,6 +92,10 @@ void fs_ls(char* dir_name);
 // Function changes the current working directory information and repopulates the array
 void fs_cd(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* args, int* free_spot, int rem_inodes);
 
+// Function first checks if there is enough space for more inodes, then checks for matching names of input and directory
+// Returns 3 different flags indicating size error, existence error, and valid conditions
+int fs_precreate_helper(Entry* dir_list, char* args, int free_spot, int rem_inodes, int cur_inodes);
+
 // Function creates a new Entry instance in memory and creates a new directory in the shell
 void fs_mkdir(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* args, int* free_spot, int* rem_inodes, int* cur_inodes);
 

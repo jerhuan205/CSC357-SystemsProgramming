@@ -233,6 +233,7 @@ void fs_cd(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* 
 }
 
 // Function first checks if there is enough space for more inodes, then checks for matching names of input and directory
+// Returns 3 different flags indicating size error, existence error, and valid conditions
 int fs_precreate_helper(Entry* dir_list, char* args, int free_spot, int rem_inodes, int cur_inodes)
 {
 	// If we don't have enough space for more inodes, then send a flag for an error
