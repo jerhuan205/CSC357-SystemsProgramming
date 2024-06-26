@@ -1,5 +1,10 @@
 #include "fs_simulator.h"
 
+Inode inodes_list[MAX_INODES];
+
+int starting_inodes;
+
+
 // Helper function provided by program assignment instructions
 char *uint32_to_str(uint32_t i)
 {
@@ -8,6 +13,18 @@ char *uint32_to_str(uint32_t i)
 	snprintf(str, length + 1, "%lu", (unsigned long)i);        // print to string
 
 	return str;
+}
+
+
+
+// Function catches the specified program terminations and makes appropriate changes to the inodes_list file
+void sig_handler(int signum)
+{
+	if (signum == SIGINT) 		{printf("Received SIGINT.\n");}
+	else if (signum == SIGQUIT) 	{printf("Received SIGQUIT.\n");}
+	printf("Writing to inodes_list file...\n");
+	fs_exit(inodes_list, starting_inodes);
+	exit(signum);
 }
 
 
@@ -29,18 +46,6 @@ void parse_args(int argc, char* argv1)
 		fprintf(stderr, "Invalid input. '%s' is not a directory\n", argv1);
 		exit(EXIT_FAILURE);
 	}
-}
-
-
-
-// Function catches the specified program terminations and makes appropriate changes to the inodes_list file
-void sig_handler(int signum)
-{
-	if (signum == SIGINT) 		{printf("Received SIGINT.\n");}
-	else if (signum == SIGQUIT) 	{printf("Received SIGQUIT.\n");}
-	printf("Writing to inodes_list file...\n");
-	fs_exit(inodes_list, starting_inodes);
-	exit(signum);
 }
 
 
@@ -475,12 +480,14 @@ int main(int argc, char* argv[])
 		{ printf("unable to register handler for SIGINT\n"); 	return 1; }
 
 	// Array holding 1024 possible entries of type Inode from the file "inodes_list"
-	Inode inodes_list[MAX_INODES];
+//	Inode inodes_list[MAX_INODES];	// Moved to be a global variable
 
 	// Load the "inodes_list" file and get the current number of inodes
 	// At the same time, populate our inodes_list array
 	int cur_inodes = load_inodes_list(inodes_list);
-	int starting_inodes = cur_inodes;
+
+	// Global variable starting_inodes represents the number of inodes we have upon program start
+	starting_inodes = cur_inodes;
 	int rem_inodes = MAX_INODES - cur_inodes;
 
 	// Array holding the entries of our 'current working' directory
