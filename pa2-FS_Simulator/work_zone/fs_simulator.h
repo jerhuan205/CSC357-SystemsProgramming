@@ -92,12 +92,11 @@ void fs_cd(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* 
 // Function creates a new Entry instance in memory and creates a new directory in the shell
 void fs_mkdir(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* args, int* free_spot, int* rem_inodes, int* cur_inodes);
 
-// TODO:
 // Function creates a new Entry instance in memory and creates a new file in the shell
 void fs_touch(Inode* inodes_list, Entry* dir_list);
 
-void fs_exit();
-
+// Function adds the changes made to our inodes_list in Memory to the 'inodes_list' file
+void fs_exit(Inode* inodes_list, int starting_inodes);
 
 
 /* DEBUGGING FUNCTIONS */

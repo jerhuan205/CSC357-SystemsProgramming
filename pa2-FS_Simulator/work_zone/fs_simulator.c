@@ -75,6 +75,25 @@ int load_inodes_list(Inode* inodes_list)
 
 
 
+// Function initializes the remaining entries of a directory with nonexistent blocks
+void init_rem_entries(Entry* dir_list, int start, int end)
+{
+	// Start and End represent the number of entries to loop through
+	for (int i = start; i < end; i++)
+	{
+		// Indices of '-1' ints represent our "NULL"
+		dir_list[i].inode = -1;
+
+		// Names of 32 '\0' chars represent our "NULL"
+		for (int j = 0; j < FNAME_SIZE + NULL_TERM; j++)
+		{
+			dir_list[i].name[j] = '\0';
+		}
+	}
+}
+
+
+
 // Function reads the directory file and populates the dir_list contents in memory
 // Returns the number of entries in the list
 int load_directory(Entry* dir_list, char* dir_name, int rem_inodes)
@@ -112,14 +131,7 @@ int load_directory(Entry* dir_list, char* dir_name, int rem_inodes)
 	// Initialize the remaining list for reminder that:
 	// 	-1 is nonexistent inode,
 	//	A string of '\0' is nonexistent inode
-	for (int i = num_inodes; i < rem_inodes; i++)
-	{
-		dir_list[i].inode = -1;
-		for (int j = 0; j < FNAME_SIZE + NULL_TERM; j++)
-		{
-			dir_list[i].name[j] = '\0';
-		}
-	}
+	init_rem_entries(dir_list, num_inodes, rem_inodes);
 
 	// Return the current size / number of entries in the directory
 	return num_inodes;
@@ -198,6 +210,7 @@ void fs_cd(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* 
 	if (new_dir == -1)
 	{
 		printf("cd: %s: No such file or directory\n", args);
+		return;
 	}
 
 	// If the match is not a directory, print a message similar to shell
@@ -218,7 +231,6 @@ void fs_cd(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* 
 	// Load the new directory and populate our new directory with its entries
 	*free_spot = load_directory(dir_list, current_directory->name, rem_inodes);
 }
-
 
 // Function creates a new Entry instance in memory and creates a new directory in the shell
 void fs_mkdir(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* args, int* free_spot, int* rem_inodes, int* cur_inodes)
@@ -257,21 +269,11 @@ void fs_mkdir(Inode* inodes_list, Entry* dir_list, Entry* current_directory, cha
 	dir_list[*free_spot].inode = *cur_inodes;
 	strcpy(dir_list[*free_spot].name, args);
 
-	// Create a new instance for the directory
+	// Create a new instance for the Directory
 	Entry new_dir_list[2];
 
-	// TODO: might combine into a separate function
-	// Initialize the remaining list for reminder that:
-	// 	-1 is nonexistent inode,
-	//	A string of '\0' is nonexistent inode
-	for (int i = 0; i < 2 ; i++)
-	{
-		new_dir_list[i].inode = -1;
-		for (int j = 0; j < FNAME_SIZE + NULL_TERM; j++)
-		{
-			new_dir_list[i].name[j] = '\0';
-		}
-	}
+	// Initialize the Directory with nonexistent blocks.
+	init_rem_entries(new_dir_list, 0, 2);
 
 	// Set the first inode to itself followed by the '.'
 	new_dir_list[0].inode = (uint32_t)*cur_inodes;
@@ -309,6 +311,29 @@ void fs_mkdir(Inode* inodes_list, Entry* dir_list, Entry* current_directory, cha
 
 	// Decrement the number of remaining inodes we have left to create
 	(*rem_inodes)--;
+}
+
+// Function adds the changes made to our inodes_list in Memory to the 'inodes_list' file
+void fs_exit(Inode* inodes_list, int starting_inodes)
+{
+	// Open the "inodes_list" file
+	FILE* inodes_list_file = fopen("inodes_list", "ab");
+	// TODO: ^ - opening in wb may not be necessary because we are just adding the new entries as a result of mkdir and touch
+		// - opening in ab might be better, starting at 'cur_inodes' up until the end of inodes_list to append the entrie
+	// Interesting note:
+		// - wb may make sense for when we have to do a 'remove' function
+
+	// Loop over all entries of our Array holding our current "inodes_list", writing each entry to the "inodes_list" file
+	for (int i = starting_inodes; i < MAX_INODES; i++)
+	{
+		if (inodes_list[i].type == 'd' || inodes_list[i].type == 'f')
+		{
+			fwrite(&(inodes_list[i].index), sizeof(uint32_t), 1, inodes_list_file);
+			fwrite(&(inodes_list[i].type), sizeof(char), 1, inodes_list_file);
+		}
+	}
+	fclose(inodes_list_file);
+	exit(0);
 }
 
 
@@ -477,7 +502,8 @@ int main(int argc, char* argv[])
 				printf("matches touch\n");
 				break;
 			case CMD_EXIT:
-				printf("matches exit\n");
+				// Exit program, writing to the "inodes_list" file any changes since our starting number of inodes
+				fs_exit(inodes_list, starting_inodes);
 				break;
 
 			// The rest are not necessary, but just easier than hardcoding in the inode # and name
