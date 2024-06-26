@@ -61,6 +61,7 @@ typedef struct {
 // 'Loading' actions will inolve 'open'ing and 'read'ing files, as well as populating memory blocks.
 
 
+
 /* PROGRAM FUNCTIONS */
 // Function parses and verifies program arguments for correct startup
 void parse_args(int argc, char* argv1);
@@ -88,12 +89,16 @@ void fs_ls(char* dir_name);
 // Function changes the current working directory information and repopulates the array
 void fs_cd(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* args, int* free_spot, int rem_inodes);
 
-// TODO:
-void fs_mkdir();
+// Function creates a new Entry instance in memory and creates a new directory in the shell
+void fs_mkdir(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* args, int* free_spot, int* rem_inodes, int* cur_inodes);
 
-void fs_touch();
+// TODO:
+// Function creates a new Entry instance in memory and creates a new file in the shell
+void fs_touch(Inode* inodes_list, Entry* dir_list);
 
 void fs_exit();
+
+
 
 /* DEBUGGING FUNCTIONS */
 // "e_ilist"

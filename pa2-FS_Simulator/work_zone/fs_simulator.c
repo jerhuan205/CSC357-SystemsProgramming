@@ -1,5 +1,6 @@
 #include "fs_simulator.h"
 
+// Helper function provided by program assignment instructions
 char *uint32_to_str(uint32_t i)
 {
 	int length = snprintf(NULL, 0, "%lu", (unsigned long)i);   // pretend to print to a string to determine length
@@ -8,6 +9,8 @@ char *uint32_to_str(uint32_t i)
 
 	return str;
 }
+
+
 
 // Function parses and verifies program arguments for correct startup
 void parse_args(int argc, char* argv1)
@@ -112,7 +115,7 @@ int load_directory(Entry* dir_list, char* dir_name, int rem_inodes)
 	for (int i = num_inodes; i < rem_inodes; i++)
 	{
 		dir_list[i].inode = -1;
-		for (int j = 0; j < FNAME_SIZE + 1; j++)
+		for (int j = 0; j < FNAME_SIZE + NULL_TERM; j++)
 		{
 			dir_list[i].name[j] = '\0';
 		}
@@ -146,7 +149,7 @@ int get_command(const char *cmd)
 
 
 
-/* SIMULATOR FUNCTIONS */
+/* ------------------------------------------------------------ SIMULATOR FUNCTIONS ------------------------------------------------------------ */
 // Function displays the entries of the current working directory of Simulator Program
 void fs_ls(char* dir_name)
 {
@@ -216,13 +219,101 @@ void fs_cd(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* 
 	*free_spot = load_directory(dir_list, current_directory->name, rem_inodes);
 }
 
-// TODO:
+
+// Function creates a new Entry instance in memory and creates a new directory in the shell
+void fs_mkdir(Inode* inodes_list, Entry* dir_list, Entry* current_directory, char* args, int* free_spot, int* rem_inodes, int* cur_inodes)
+{
+	// If we don't have enough space for more inodes, then report an error
+	if (*cur_inodes >= *rem_inodes)
+	{
+		printf("Error, not enough space for another directory.\n");
+		return;
+	}
+
+	// Loop through the entries in our current directory for a match
+	int new_dir_index = -1;
+	for (int i = 0; i < *free_spot; i++)
+	{
+		if (strcmp(args, dir_list[i].name) == 0)
+		{
+			new_dir_index = -1;
+			break;
+		}
+		new_dir_index = i;
+	}
+
+	// If a file or directory exists with that particular name, print a message similar to shell
+	if (new_dir_index == -1)
+	{
+		printf("mkdir: cannot create directory '%s': File exists\n", args);
+		return;
+	}
+
+	// Add the new entry to our inodes list, with its inode as the current number of inodes and file type of 'd'
+	inodes_list[*cur_inodes].index = *cur_inodes;
+	inodes_list[*cur_inodes].type = 'd';
+
+	// Add the new entry to our 'current working directory' at the free spot in our array
+	dir_list[*free_spot].inode = *cur_inodes;
+	strcpy(dir_list[*free_spot].name, args);
+
+	// Create a new instance for the directory
+	Entry new_dir_list[2];
+
+	// TODO: might combine into a separate function
+	// Initialize the remaining list for reminder that:
+	// 	-1 is nonexistent inode,
+	//	A string of '\0' is nonexistent inode
+	for (int i = 0; i < 2 ; i++)
+	{
+		new_dir_list[i].inode = -1;
+		for (int j = 0; j < FNAME_SIZE + NULL_TERM; j++)
+		{
+			new_dir_list[i].name[j] = '\0';
+		}
+	}
+
+	// Set the first inode to itself followed by the '.'
+	new_dir_list[0].inode = (uint32_t)*cur_inodes;
+	new_dir_list[0].name[0] = '.';
+
+	// Set the second inode to current followed by the '..'
+	new_dir_list[1].inode = current_directory->inode;
+	new_dir_list[1].name[0] = '.';
+	new_dir_list[1].name[1] = '.';
+
+	// Create the new inode file, containing itself and the current directory
+	char* new_dir_name = uint32_to_str(inodes_list[*cur_inodes].index);
+	FILE* new_dir_file = fopen(new_dir_name, "wb");
+
+	// Write 1 4-byte inode and 32 1-byte chars: '.' / ASCII-value 46 (0x2e)
+	fwrite(&(new_dir_list[0].inode), sizeof(uint32_t), 1, new_dir_file);
+	fwrite(&(new_dir_list[0].name), sizeof(char), FNAME_SIZE, new_dir_file);
+
+	// Write the 4-byte current inode + 32-byte chars: '..' / 46-46 (0x2e-0x2e)
+	fwrite(&(new_dir_list[1].inode), sizeof(uint32_t), 1, new_dir_file);
+	fwrite(&(new_dir_list[1].name), sizeof(char), 32, new_dir_file);
+
+	fclose(new_dir_file);
+	free(new_dir_name);
+
+	// Open the current directory's inode file and append the new directory to its data
+	FILE* dir_file = fopen(current_directory->name, "ab");
+	fwrite(&(dir_list[*free_spot].inode), sizeof(uint32_t), 1, dir_file);
+	fwrite(&(dir_list[*free_spot].name), sizeof(char), 32, dir_file);
+	fclose(dir_file);
+
+	// Increment the current number of inodes and size of our current directory
+	(*cur_inodes)++;
+	(*free_spot)++;
+
+	// Decrement the number of remaining inodes we have left to create
+	(*rem_inodes)--;
+}
 
 
 
-
-
-/* DEBUGGING FUNCTIONS */
+/* ------------------------------------------------------------ DEBUGGING FUNCTIONS ------------------------------------------------------------ */
 // "e_ilist"
 void echo_present_inodes(Inode* inodes_list)
 {
@@ -271,7 +362,7 @@ void echo_n_entries(Entry* dir_list, int n_entries)
 
 
 
-// MAIN PROGRAM RUNS HERE
+/* ------------------------------------------------------------ MAIN PROGRAM RUNS HERE ------------------------------------------------------------ */
 int main(int argc, char* argv[])
 {
 	// Check if the arguments are valid first
@@ -379,7 +470,8 @@ int main(int argc, char* argv[])
 				fs_cd(inodes_list, dir_list, &current_directory, args, &num_entries, rem_inodes);
 				break;
 			case CMD_MKDIR:
-				printf("matches mkdir\n");
+				// Create a new directory and add to our 'current working directory' at the size of our array
+				fs_mkdir(inodes_list, dir_list, &current_directory, args, &num_entries, &rem_inodes, &cur_inodes);
 				break;
 			case CMD_TOUCH:
 				printf("matches touch\n");
