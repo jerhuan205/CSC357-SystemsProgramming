@@ -8,12 +8,18 @@
 #include <dirent.h>
 #include <fcntl.h>
 
+
+
+/* CONSTANTS */
 #define S_FLAG_ON 1
 #define A_FLAG_ON 1
 
 #define S_FLAG_OFF 0
 #define A_FLAG_OFF 0
 
+
+
+/* PROGRAM FUNCTIONS */
 int compare(const struct dirent** a, const struct dirent** b);
 
 void echo_args(int a_flag, int s_flag, char* path);

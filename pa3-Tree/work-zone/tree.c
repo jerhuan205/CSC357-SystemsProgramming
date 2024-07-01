@@ -1,12 +1,15 @@
 #include "tree.h"
 
-
+// Function compares two strings from the dirent struct
+// Returns 0 if the strings are the same
 int compare(const struct dirent** a, const struct dirent** b)
 {
 	return strcasecmp( (*a)->d_name, (*b)->d_name );
 }
 
 
+
+// Debug function that just echoes the passed args in program
 void echo_args(int a_flag, int s_flag, char* path)
 {
 	printf("s_flag|%d|\n", s_flag);
@@ -15,6 +18,9 @@ void echo_args(int a_flag, int s_flag, char* path)
 	return;
 }
 
+
+
+// Function that recursively goes through the directories, sorts them in alphabetical order, then prints the names in a tree-like structure
 void tree_recurse(int s_flag, int a_flag, int level, int* dir_count, int* file_count, char* path)
 {
 	DIR* p_dir;
@@ -131,6 +137,9 @@ void tree_recurse(int s_flag, int a_flag, int level, int* dir_count, int* file_c
 	return;
 }
 
+
+
+/* ------------------------------------------------------------ MAIN PROGRAM RUNS HERE ------------------------------------------------------------ */
 int main(int argc, char *argv[])
 {
 	// Check if 2 < number of args < 4
