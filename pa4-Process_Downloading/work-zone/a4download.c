@@ -127,6 +127,9 @@ int main(int argc, char* argv[])
 		n_lines++;
 	}
 
+	// After storing file contents, null terminate the last elements of our array
+	file_info[n_lines] = (FileEntry) {NULL, NULL, -1, -1};
+
 	// Close the file after we have gathered its information
 	fclose(fp);
 
@@ -140,7 +143,18 @@ int main(int argc, char* argv[])
 		printf("free'd\n");
 	}
 
+
+	// TODO: PROCESS SPAWNING
+	int process_count = 0;
+	if (n_lines > max_downloads)
+	{
+		max_downloads = n_lines;
+	}
+	printf("Max number of processes
+
+
+
+
 	free(file_info);
 
-	
 }
