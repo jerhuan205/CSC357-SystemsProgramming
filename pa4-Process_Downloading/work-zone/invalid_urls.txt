@@ -1,0 +1,2 @@
+file1 https://not-a-real-domain.not-a-tld/not_valid
+file2 https://httpbin.org/delay/3 1
