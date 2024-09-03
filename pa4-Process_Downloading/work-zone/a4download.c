@@ -24,17 +24,39 @@ typedef struct {
 } FileEntry ;
 
 
-
+// TODO
 // Function
 void child_process(int timeout, char* file_name, char* url)
 {
-	exit(EXIT_FAILURE);
+	char seconds_str[10];
+	sprintf(seconds_str, "-m %d", timeout);
+
+	execl("/usr/bin/curl", "curl", seconds_str, "-o", file_name, "-s", url, NULL);
+	exit(0);
 }
 
 
+// TODO
 // Function
-int parent_process(const pid_t lines_to_pid[], int n_lines)
+int parent_process(const pid_t process_ids[], int n_lines)
 {
+	// waitpid with -1 to wait for any child process to finish and its pid is stored
+	int status;
+	pid_t finished_child = waitpid(-1, &status, 0);
+
+	// Search for finished child in our array of process ids
+	for (int i = 0; i < n_lines; i++)
+	{
+		if (finished_child == process_ids[i])
+		{
+			// Check child exit status, if successful:
+			if (WEXITSTATUS(status) == 0)
+				{ printf("process %d processing line %d exited normally\n", finished_child, i + 1); }
+			// If not successful, then display appropriate message
+			else
+				{ printf("process %d processing line %d terminated with exit status: %d\n", finished_child, i + 1, WEXITSTATUS(status)); }
+		}
+	}
 	return 0;
 }
 
@@ -144,6 +166,7 @@ int main(int argc, char* argv[])
 	}
 
 	// After storing file contents, null terminate the last elements of our array
+	// TODO: the following line creates write errors with valgrind, but no memory leaks
 	file_info[n_lines] = (FileEntry) {NULL, NULL, -1, -1};
 
 	// Close the file after we have gathered its information
@@ -167,7 +190,11 @@ int main(int argc, char* argv[])
 	// Begin process downloading until we have downloaded all of the files.
 	while (total_downloaded < n_lines)
 	{
-		// TODO:
+		// There are 2 issues occur that this check solves:
+		// 1. cur_spot will exceed n_lines and will download past the number of valid entries
+		//	"curl: option -m -1: expected a positive numerical parameter"
+		// 2. entering a max_downloads greater than 1 will speed up the a4download program and
+		//    the program finishes way before the curl downloads ever finish
 		if (cur_spot >= n_lines)
 		{
 			parent_process(process_ids, n_lines);
@@ -193,7 +220,6 @@ int main(int argc, char* argv[])
 			printf("process %d processing line %d\n", getpid(), file_info[cur_spot].line_number);
 
 			// Helper function for the downloading: curl -m <seconds> -o <filename> -s <url>
-			// TODO:
 			child_process(file_info[cur_spot].timeout, file_info[cur_spot].file_name, file_info[cur_spot].url);
 		}
 		// Parent process: fork() returns the child's process ID (pid)
@@ -202,7 +228,10 @@ int main(int argc, char* argv[])
 			// Copy the child's pid into our array holding all of the process ids
 			process_ids[cur_spot] = pid;
 
-			// TODO:
+			// This check fixes the problem of downloads only occuring one at a time because
+			//	as long as we haven't gone through all entries yet, cur_spot will keep
+			//	incrementing. This ensures that with each fork a process_count will increase
+			//	and with it an associated download at the correct spot in file_info
 			if (process_count < max_downloads)
 			{
 				cur_spot++;
@@ -219,17 +248,11 @@ int main(int argc, char* argv[])
 		}
 	}
 
-
-	// TODO: debug
-	printf("==============================outside==============================\n");
-
 	// Free all mallocs
 	for (int i = 0; i < n_lines; i++)
 	{
-		printf("%s %s %d %d\n", file_info[i].file_name, file_info[i].url, file_info[i].timeout, file_info[i].line_number);
 		free(file_info[i].file_name);
 		free(file_info[i].url);
-		printf("free'd\n");
 	}
 	free(file_info);
 
