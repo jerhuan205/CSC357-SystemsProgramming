@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
 #define DEFAULT_DOWNLOADS 2
 #define MAX_LINE_CHARS 256
@@ -21,6 +23,20 @@ typedef struct {
 	int line_number;
 } FileEntry ;
 
+
+
+// Function
+void child_process(int timeout, char* file_name, char* url)
+{
+	exit(EXIT_FAILURE);
+}
+
+
+// Function
+int parent_process(const pid_t lines_to_pid[], int n_lines)
+{
+	return 0;
+}
 
 // Function parses and verifies program arguments for correct startup
 // Returns the max-processing time as inputted by user, a default value if unspecified
@@ -117,7 +133,7 @@ int main(int argc, char* argv[])
 		file_info = realloc(file_info, (sizeof(FileEntry) * (n_lines + 1)) /* * 2*/);
 		if (file_info == NULL)
 		{
-			printf("Could not allocate memory for contents_array.\n");
+			printf("Could not allocate memory for <FileEntry* file_info>.\n");
 			fclose(fp);
 			exit(EXIT_FAILURE);
 		}
@@ -133,8 +149,81 @@ int main(int argc, char* argv[])
 	// Close the file after we have gathered its information
 	fclose(fp);
 
+	// Set the max_downloads to the number of FileEntries in the file to prevent over-downloading
+	if (max_downloads > n_lines)
+	{
+		// These prints aren't necessary, but are good for debugging or clarity for user.
+		// printf("Number of max processes, %d, specified by user exceeds number of file entries, %d.\n", max_downloads, n_lines);
+		max_downloads = n_lines;
+		// printf("Set to cap\n");
+	}
+
+	// Array holding pid information
+	pid_t process_ids[n_lines];
+	int process_count = 0;
+	int total_downloaded = 0;
+	int cur_spot = 0;
+
+	// Begin process downloading until we have downloaded all of the files.
+	while (total_downloaded < n_lines)
+	{
+		// TODO:
+		if (cur_spot >= n_lines)
+		{
+			parent_process(process_ids, n_lines);
+			process_count--;
+			total_downloaded++;
+			continue;
+		}
+
+		// Begin child processes
+		pid_t pid = fork();
+		process_count++;
+
+		// fork() error handler
+		if (pid == -1)
+		{
+			printf("Fork Error\n");
+			return -1;
+		}
+		// Child process: fork() returns 0
+		else if (pid == 0)
+		{
+			// On fork, begin the downloading
+			printf("process %d processing line %d\n", getpid(), file_info[cur_spot].line_number);
+
+			// Helper function for the downloading: curl -m <seconds> -o <filename> -s <url>
+			// TODO:
+			child_process(file_info[cur_spot].timeout, file_info[cur_spot].file_name, file_info[cur_spot].url);
+		}
+		// Parent process: fork() returns the child's process ID (pid)
+		else
+		{
+			// Copy the child's pid into our array holding all of the process ids
+			process_ids[cur_spot] = pid;
+
+			// TODO:
+			if (process_count < max_downloads)
+			{
+				cur_spot++;
+				continue;
+			}
+
+			// Helper function for parent, waiting for any child to be done with their download
+			parent_process(process_ids, n_lines);
+
+			// On completed download, allow for another processes by decrementing and incrementing our totals
+			process_count--;
+			total_downloaded++;
+			cur_spot++;
+		}
+	}
+
+
 	// TODO: debug
 	printf("==============================outside==============================\n");
+
+	// Free all mallocs
 	for (int i = 0; i < n_lines; i++)
 	{
 		printf("%s %s %d %d\n", file_info[i].file_name, file_info[i].url, file_info[i].timeout, file_info[i].line_number);
@@ -142,19 +231,6 @@ int main(int argc, char* argv[])
 		free(file_info[i].url);
 		printf("free'd\n");
 	}
-
-
-	// TODO: PROCESS SPAWNING
-	int process_count = 0;
-	if (n_lines > max_downloads)
-	{
-		max_downloads = n_lines;
-	}
-	printf("Max number of processes
-
-
-
-
 	free(file_info);
 
 }
