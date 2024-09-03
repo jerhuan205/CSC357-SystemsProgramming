@@ -1,34 +1,3 @@
-// TODO:
-
-// functionality completed, added a line about valgrind writing errors; need to test with time, valgrind, delays.txt & invalid_urls.txt
-
-// TODO: after all that, separate into different functions for a cleaner "main"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -69,11 +38,17 @@ void child_process(int timeout, char* file_name, char* url)
 
 // TODO
 // Function
-int parent_process(const pid_t process_ids[], int n_lines)
+int parent_process(pid_t process_ids[], int n_lines)
 {
 	// waitpid with -1 to wait for any child process to finish and its pid is stored
 	int status;
 	pid_t finished_child = waitpid(-1, &status, 0);
+
+	if (finished_child == -1)
+	{
+		perror("waitpid failed");
+		return -1;
+	}
 
 	// Search for finished child in our array of process ids
 	for (int i = 0; i < n_lines; i++)
@@ -81,11 +56,14 @@ int parent_process(const pid_t process_ids[], int n_lines)
 		if (finished_child == process_ids[i])
 		{
 			// Check child exit status, if successful:
-			if (WEXITSTATUS(status) == 0)
+			int exit_status = WEXITSTATUS(status);
+			if (exit_status == 0)
 				{ printf("process %d processing line %d exited normally\n", finished_child, i + 1); }
 			// If not successful, then display appropriate message
-			else
-				{ printf("process %d processing line %d terminated with exit status: %d\n", finished_child, i + 1, WEXITSTATUS(status)); }
+			else	{ printf("process %d processing line %d terminated with exit status: %d\n", finished_child, i + 1, exit_status); }
+			// adding this break removes a valgrind error
+			// "Conditional jump or move depends on uninitialised value(s)"
+			break;
 		}
 	}
 	return 0;
@@ -198,7 +176,7 @@ int main(int argc, char* argv[])
 
 	// After storing file contents, null terminate the last elements of our array
 	// TODO: the following line creates write errors with valgrind, but no memory leaks
-	file_info[n_lines] = (FileEntry) {NULL, NULL, -1, -1};
+	// file_info[n_lines] = (FileEntry) {NULL, NULL, -1, -1};
 
 	// Close the file after we have gathered its information
 	fclose(fp);
