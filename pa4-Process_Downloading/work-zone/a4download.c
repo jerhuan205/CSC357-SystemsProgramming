@@ -1,3 +1,34 @@
+// TODO:
+
+// functionality completed, added a line about valgrind writing errors; need to test with time, valgrind, delays.txt & invalid_urls.txt
+
+// TODO: after all that, separate into different functions for a cleaner "main"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
