@@ -1,3 +1,5 @@
+// TODO:
+// ADD COMMENTS AND TEST IF IT WORKS WITH TIMING, VALGRIND FOR THE 3 EXAMPLE FILES
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
