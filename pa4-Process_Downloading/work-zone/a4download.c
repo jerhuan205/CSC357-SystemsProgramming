@@ -1,29 +1,37 @@
-// TODO:
-// ADD COMMENTS AND TEST IF IT WORKS WITH TIMING, VALGRIND FOR THE 3 EXAMPLE FILES
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/wait.h>
+#include "a4download.h"
 
-#define DEFAULT_DOWNLOADS 2
-#define MAX_LINE_CHARS 256
-#define MAX_NAME_CHARS 64
-#define MAX_URL_CHARS  124
-#define MAX_DOWNLOAD_TIME 20
 
-// Information regarding a file will follow in the particular order:
-// 1. Output file name,
-// 2. URL,
-// 3. optional max-number of seconds for download
-// file_info will be the array with each entry being a line holding these 3 pieces
+// Global variables to help with signal catching and freeing
+FileEntry* file_info;
 
-typedef struct {
-	char* file_name;
-	char* url;
-	int timeout;
-	int line_number;
-} FileEntry ;
+int n_lines = 0;
+
+
+// Function free's the array holding file information, clearing all heap data
+// Returns nothing
+void free_file_info()
+{
+	// Free mallocs: array holding file information before closing
+	for (int i = 0; i < n_lines; i++)
+	{
+		free(file_info[i].file_name);
+		free(file_info[i].url);
+	}
+	free(file_info);
+}
+
+
+
+// Function catches the specified program terminations and clears the heap
+void sig_handler(int signum)
+{
+	if 	(signum == SIGINT ) 	{ printf("Received SIGINT.\n"); }
+	else if (signum == SIGQUIT) 	{ printf("Received SIGQUIT.\n");}
+	free_file_info();
+	exit(signum);
+}
+
+
 
 // Function parses and verifies program arguments for correct startup
 // Returns the max-processing time as inputted by user, a default value if unspecified
@@ -49,12 +57,14 @@ int parse_args(int argc, char* argv[])
 		// Check for conversion errors or for an invalid time value
 		if (*endptr != '\0' || max_downloads <= 0)
 		{
-			fprintf(stderr, "Invalid download cap: %s\n", argv[1]);
+			fprintf(stderr, "Invalid download cap: %s\n", argv[2]);
 			exit(EXIT_FAILURE);
 		}
 		return max_downloads;
 	}
 }
+
+
 
 // Function parses the user specified input_file and populates an array holding download information
 // Returns a pointer to the array
@@ -137,8 +147,9 @@ FileEntry* copy_file_contents(char* input_file, int* n_lines)
 }
 
 
-// TODO
-// Function
+
+// Function executes "curl" shell command per child request
+// Returns nothing and exits once shell command is completed
 void child_process(int timeout, char* file_name, char* url)
 {
 	char seconds_str[10];
@@ -148,19 +159,15 @@ void child_process(int timeout, char* file_name, char* url)
 	exit(0);
 }
 
-// TODO
-// Function
-int parent_process(pid_t process_ids[], int n_lines)
+
+
+// Function operates the "waiting" portion of the program each child request
+// Returns nothing
+void parent_process(pid_t process_ids[], int n_lines)
 {
 	// waitpid with -1 to wait for any child process to finish and its pid is stored
 	int status;
 	pid_t finished_child = waitpid(-1, &status, 0);
-
-	if (finished_child == -1)
-	{
-		perror("waitpid failed");
-		return -1;
-	}
 
 	// Search for finished child in our array of process ids
 	for (int i = 0; i < n_lines; i++)
@@ -178,20 +185,25 @@ int parent_process(pid_t process_ids[], int n_lines)
 			break;
 		}
 	}
-
-	return 0;
 }
 
-/* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+
+
+/* ------------------------------------------------------------ MAIN PROGRAM RUNS HERE ------------------------------------------------------------ */
 int main(int argc, char* argv[])
 {
 	// Check if the number of arguments are valid first
 	char* input_file = argv[1];
 	int max_downloads = parse_args(argc, argv);
 
+	// Signals to catch any program terminations.
+	if (signal(SIGQUIT, sig_handler) == SIG_ERR) // "CTRL + \"
+		{ printf("unable to register handler for SIGQUIT\n"); 	return 1; }
+	if (signal(SIGINT, sig_handler) == SIG_ERR) // "CTRL + C"
+		{ printf("unable to register handler for SIGINT\n"); 	return 1; }
+
 	// Instantiate the array and populate it with information from the input_file
-	int n_lines = 0;
-	FileEntry* file_info = copy_file_contents(input_file, &n_lines);
+	file_info = copy_file_contents(input_file, &n_lines);
 
 	/* - - - - - The downloading - - - - - - */
 
@@ -270,13 +282,5 @@ int main(int argc, char* argv[])
 			cur_spot++;
 		}
 	}
-
-	// Free all mallocs
-	for (int i = 0; i < n_lines; i++)
-	{
-		printf("%s \n", file_info[i].file_name);
-		free(file_info[i].file_name);
-		free(file_info[i].url);
-	}
-	free(file_info);
+	free_file_info();
 }
