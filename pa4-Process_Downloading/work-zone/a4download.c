@@ -1,10 +1,12 @@
 #include "a4download.h"
 
 
+
 // Global variables to help with signal catching and freeing
 FileEntry* file_info;
 
 int n_lines = 0;
+
 
 
 // Function free's the array holding file information, clearing all heap data
