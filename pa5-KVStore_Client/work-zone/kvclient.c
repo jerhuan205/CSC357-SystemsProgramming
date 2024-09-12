@@ -66,5 +66,7 @@ int main(int argc, char* argv[])
 
 	// TESTING
 	printf("client_request: %s\n", client_request);
+
+	// TODO: SOCKETWORK LATER
 }
 
