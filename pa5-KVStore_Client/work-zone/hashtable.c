@@ -4,7 +4,7 @@
 
 #define MAX_KEY_LEN 33		// 32 chars + 1 null term
 #define MAX_VAL_LEN 1025	// 1024 chars + 1 null term
-#define DEFAULT_HT_CAP 5
+#define DEFAULT_HT_CAP 20
 
 // A KeyValuePair struct holds 3 pieces of information:
 typedef struct KeyValuePair {
@@ -15,30 +15,89 @@ typedef struct KeyValuePair {
 
 // A HashTable struct will hold a table of constant-defined pointers to KeyValuePairs
 typedef struct HashTable {
-	struct KeyValuePair* table[DEFAULT_HT_CAP];
+	struct KeyValuePair** table;	// Pointer to a dynamically allocated array of KeyValuePairs
 	int cap;
 	int size;
 } HashTable;
 
-int hash_function(const char* key)
+// Simple hash function by DJB2
+int hash_function(const char* key, int capacity)
 {
-	int hash = 0;
-	for (int i = 0; key[i] != '\0'; i++)
+	unsigned long hash = 5381;	// Start with a large prime
+	int c;
+
+	while ((c = *key++))
 	{
-		hash += key[i];
+		// hash * 33 + c
+		hash = ((hash << 5) + hash) + c;
 	}
-	return hash % DEFAULT_HT_CAP;
+
+	return (int)(hash % capacity);
 }
 
-// TODO: NEED TO COMMIT ALL THESE CHANGES
-void set_item(HashTable* hash_table, char* key, int value)
+// Function to create a new HashTable
+HashTable* create_hash_table()
 {
-	// Create a hash index using the inputted key
-	int index = hash_function(key);
+	HashTable* ht = (HashTable*) malloc(sizeof(HashTable));
+	if (ht != NULL)
+	{
+		ht->cap = DEFAULT_HT_CAP;
+		ht->size = 0;
+		ht->table = (KeyValuePair**) calloc(DEFAULT_HT_CAP, sizeof(KeyValuePair*));
+		if (ht->table == NULL)
+		{
+			free(ht); // Clean up if calloc fails
+			return NULL;
+		}
+	}
+	return ht;
+}
+
+void rehash(HashTable* ht)
+{
+	int old_cap = ht->cap;
+	int new_cap = old_cap * 2;
+
+	// Create a new table with double the capacity
+	KeyValuePair** new_table = (KeyValuePair**) calloc(new_cap, sizeof(KeyValuePair*));
+	if (new_table == NULL)
+	{
+		printf("Failed to allocate memory for rehashing.\n");
+		return;
+	}
+
+	// Rehash all items from the old table into the new table
+	for (int i = 0; i < old_cap; i++)
+	{
+		KeyValuePair* cur = ht->table[i];
+		while (cur != NULL)
+		{
+			KeyValuePair* next = cur->next;
+			int new_index = hash_function(cur->key, new_cap);
+
+			// Insert into the new table
+			cur->next = new_table[new_index];
+			new_table[new_index] = cur;
+
+			cur = next;
+		}
+	}
+
+	// Free the old table and update the hash_table to point to the new table
+	free(ht->table);
+	ht->table = new_table;
+	ht->cap = new_cap;
+
+	printf("Rehashing complete. New capacity: %d\n", new_cap);
+}
+
+void set_item(HashTable* ht, char* key, int value)
+{
+	// Create a hash index using the inputted key and the current capacity of the hashtable
+	int index = hash_function(key, ht->cap);
 
 	// Loop through the separate chains in the HashTable
-	KeyValuePair* cur = hash_table->table[index];
-	printf("%s\n", cur->key);
+	KeyValuePair* cur = ht->table[index];
 	while (cur != NULL)
 	{
 		// If we find the exact key, replace it with a new value
@@ -47,40 +106,61 @@ void set_item(HashTable* hash_table, char* key, int value)
 			cur->value = value;
 			return;
 		}
+		cur = cur->next;
 	}
 
 	// If the key doesn't exist, create an instance of the pair
 	KeyValuePair* new_pair = (KeyValuePair*) malloc(sizeof(KeyValuePair));
-	if (new_pair != NULL)
-	{
-		strncpy(new_pair->key, key, MAX_KEY_LEN - 1);
-		new_pair->key[MAX_KEY_LEN - 1] = '\0';
-		new_pair->value = value;
-		new_pair->next = NULL;
-	}
-	else
+	if (new_pair == NULL)
 	{
 		printf("Allocation for new_pair failed.\n");
 		return;
 	}
+	strncpy(new_pair->key, key, MAX_KEY_LEN - 1);
+	new_pair->key[MAX_KEY_LEN - 1] = '\0';
+	new_pair->value = value;
+	new_pair->next = NULL;
 
-	// Add the new KeyPairValue to HashTable at the front
-	new_pair->next = hash_table->table[index];
-	hash_table->table[index] = new_pair;
-	hash_table->size += 1;
+	// Add the new KeyPairValue to HashTable at the front and set the links appropriately
+	new_pair->next = ht->table[index];
+	ht->table[index] = new_pair;
+	ht->size += 1;
 
-	// 
-	if ((hash_table->size / hash_table->cap) > 1)
+	// Resize the hashtable if the load factor exceeds 0.75
+	if ( ((float)ht->size / (float)ht->cap) > 0.75)
 	{
-		hash_table->cap *= 2;
+		rehash(ht);
 	}
-//	if ((hash_table.size / hash_table.capacity) > 1.0):
-//		hash_table.capacity *= 2
-//		new_table = [[] for _ in range(hash_table.capacity)]
-//		for chain in hash_table.table:
-//			for pair in chain:
-//				pair_key = pair[0]
-//				index = hash_table.hash_function(pair_key) % hash_table.capacity
-//				new_table[index].append(pair)
-//		hash_table.table = new_table
+}
+
+int get_item(HashTable* ht, char* key)
+{
+	int index = hash_function(key, ht->cap);
+
+	KeyValuePair* cur = ht->table[index];
+	while (cur != NULL)
+	{
+		// If we find a key in the HashTable, return the value
+		if ( strcmp(cur->key, key) == 0 ) {
+			return cur->value;
+		}
+		cur = cur->next;
+	}
+	return -1;	// Key not found
+}
+
+void free_ht(HashTable *ht)
+{
+	for (int i = 0; i < ht->cap; i++)
+	{
+		KeyValuePair* cur = ht->table[i];
+		while (cur != NULL)
+		{
+			KeyValuePair* temp = cur;
+			cur = cur->next;
+			free(temp);
+		}
+	}
+	free(ht->table);
+	free(ht);
 }
