@@ -49,7 +49,7 @@ void tree_recurse(int s_flag, int a_flag, int level, int* dir_count, int* file_c
 
 	// Read all entries into a list of names
 	num_entries = scandir(".", &name_list, NULL, compare);
-	// scandir scans the directory ".", sorted using qsort, and collected in &namelist.
+	// scandir scans the directory ".", sorted using compare function, and collected in &namelist.
 	// returns # of directory entries, -1 on error
 	if (num_entries < 0)
 	{
@@ -72,7 +72,7 @@ void tree_recurse(int s_flag, int a_flag, int level, int* dir_count, int* file_c
 
 		// Skip any hidden files unless a_flag is set
 		// The inodes "." and ".." count as hidden, so they must be passed over to avoid infinite looping
-			// "-a" IS on & hidden file IS present, display its information accordingly
+		// If "-a" IS on & hidden file IS present, display its information accordingly
 		if (a_flag == A_FLAG_OFF && entry->d_name[0] == '.')
 		{
 			free(entry);
@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
 		struct stat dir_info;
 		for (int i = 1; i < (argc - 1); i++)
 		{
-			// If the optional argument is a flag, strcmp will return 0 as True
+			// If the optional argument is an "s" or "a" flag, strcmp will return 0 as True
 			if (!strcmp(argv[i], "-s"))
 			{
 				s_flag = S_FLAG_ON;
@@ -170,6 +170,10 @@ int main(int argc, char *argv[])
 			else if (!strcmp(argv[i], "-a"))
 			{
 				a_flag = S_FLAG_ON;
+			}
+			else
+			{
+				printf("'<%s>' is not a valid flag. Proceeding with program...\n", argv[i]);
 			}
 		}
 		// The last argument is the path
